@@ -3,9 +3,13 @@ package tests
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"strconv"
+	"testing"
+	"time"
+
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/ruleapi"
-	"testing"
 )
 
 /**
@@ -62,6 +66,83 @@ func Test_One(t *testing.T) {
 		t.Errorf("Expecting [3] actions, got [%d]", len(actionMap))
 		t.FailNow()
 	}
+}
+
+func BenchmarkTestApiOne(b *testing.B) {
+	rs, _ := createRuleSession()
+
+	actionMap := make(map[string]string)
+	r1 := ruleapi.NewRule("R1")
+	r1.AddCondition("C1", []string{"t1"}, checkC1, nil)
+	r1.SetAction(actionA1)
+	r1.SetPriority(1)
+	r1.SetContext(actionMap)
+	rs.AddRule(r1)
+
+	rs.Start(nil)
+	fmt.Println("Alert message 1")
+	for n := 0; n < b.N; n++ {
+		//// rule 1
+		s1 := rand.NewSource(time.Now().UnixNano())
+		r1 := rand.New(s1)
+		t1, _ := model.NewTupleWithKeyValues("t1", "Tom"+strconv.Itoa(r1.Intn(1000000000000)))
+		t1.SetString(nil, "p3", "test")
+		err := rs.Assert(nil, t1)
+		if err != nil {
+			fmt.Println("Tom" + strconv.Itoa(r1.Intn(1000000000000)))
+			b.Error(err)
+			b.Fail()
+		}
+		// time.Sleep(1000 * time.Nanosecond)
+	}
+	rs.Unregister()
+}
+
+func BenchmarkTestApiTwo(b *testing.B) {
+	rs, _ := createRuleSession()
+	fmt.Println("Alert message 2")
+	actionMap := make(map[string]string)
+	r1 := ruleapi.NewRule("R1")
+	r1.AddCondition("C1", []string{"t1"}, checkC1, nil)
+	r1.SetAction(actionA1)
+	r1.SetPriority(1)
+	r1.SetContext(actionMap)
+	rs.AddRule(r1)
+
+	r2 := ruleapi.NewRule("R2")
+	r2.AddCondition("C2", []string{"t1"}, checkC2, nil)
+	r2.SetAction(actionA2)
+	r2.SetPriority(2)
+	r2.SetContext(actionMap)
+
+	rs.AddRule(r2)
+
+	// rule 3
+	r3 := ruleapi.NewRule("R3")
+	r3.AddCondition("C3", []string{"t1"}, checkC3, nil)
+	r3.SetAction(actionA3)
+	r3.SetPriority(3)
+	r3.SetContext(actionMap)
+
+	rs.AddRule(r3)
+
+	rs.Start(nil)
+
+	for n := 0; n < b.N; n++ {
+		//// rule 1
+		s1 := rand.NewSource(time.Now().UnixNano())
+		r1 := rand.New(s1)
+		t1, _ := model.NewTupleWithKeyValues("t1", "Tom"+strconv.Itoa(r1.Intn(1000000000000)))
+		t1.SetString(nil, "p3", "test")
+		err := rs.Assert(nil, t1)
+		if err != nil {
+			fmt.Println("Tom" + strconv.Itoa(r1.Intn(1000000000000)))
+			b.Error(err)
+			b.Fail()
+		}
+		// time.Sleep(1000 * time.Nanosecond)
+	}
+	rs.Unregister()
 }
 
 func checkC1(ruleName string, condName string, tuples map[model.TupleType]model.Tuple, ctx model.RuleContext) bool {

@@ -60,3 +60,17 @@ type txnCtx struct {
 	Testing *testing.T
 	TxnCnt  int
 }
+
+// func createBActionServiceFromFunction(b *testing.B, actionFunction model.ActionFunction) model.ActionService {
+// 	fname := runtime.FuncForPC(reflect.ValueOf(actionFunction).Pointer()).Name()
+// 	cfg := &config.ServiceDescriptor{
+// 		Name:        fname,
+// 		Description: fname,
+// 		Type:        config.TypeServiceFunction,
+// 		Function:    actionFunction,
+// 	}
+// 	aService, err := ruleapi.NewActionService(cfg)
+// 	assert.Nil(b, err)
+// 	assert.NotNil(b, aService)
+// 	return aService
+// }
