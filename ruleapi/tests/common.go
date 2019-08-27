@@ -74,3 +74,5 @@ type txnCtx struct {
 // 	assert.NotNil(b, aService)
 // 	return aService
 // }
+
+type TestKey struct{}
