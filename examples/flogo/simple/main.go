@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"runtime"
 	"runtime/pprof"
@@ -13,17 +15,19 @@ import (
 
 	_ "github.com/project-flogo/contrib/trigger/rest"
 	_ "github.com/project-flogo/rules/ruleaction"
-
 )
 
 var (
-	cpuProfile = flag.String("cpuprofile", "", "Writes CPU profile to the specified file")
-	memProfile = flag.String("memprofile", "", "Writes memory profile to the specified file")
-	cfgJson string
+	cpuProfile    = flag.String("cpuprofile", "", "Writes CPU profile to the specified file")
+	memProfile    = flag.String("memprofile", "", "Writes memory profile to the specified file")
+	cfgJson       string
 	cfgCompressed bool
 )
 
 func main() {
+	go func() {
+		fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	flag.Parse()
 	if *cpuProfile != "" {
