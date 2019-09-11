@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/LakshmiMekala/rules-1/ruleapi/tests"
 	"github.com/project-flogo/core/engine"
-	"github.com/project-flogo/rules/ruleapi/tests"
 )
 
 func BenchmarkTestSimpleJSON(b *testing.B) {
