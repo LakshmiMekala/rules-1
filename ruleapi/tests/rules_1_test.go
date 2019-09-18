@@ -3,9 +3,11 @@ package tests
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"testing"
+
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/ruleapi"
-	"testing"
 )
 
 /**
@@ -107,4 +109,59 @@ func actionA3(ctx context.Context, rs model.RuleSession, ruleName string, tuples
 	fmt.Println("In Action A3 End ", val)
 	firedMap := ruleCtx.(map[string]string)
 	firedMap["A3"] = "Fired"
+}
+
+func checkC4(ruleName string, condName string, tuples map[model.TupleType]model.Tuple, ctx model.RuleContext) bool {
+	return true
+}
+
+func actionA4(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
+
+}
+
+func BenchmarkTestApiOne(b *testing.B) {
+	rs, _ := createRuleSession()
+
+	actionMap := make(map[string]string)
+
+	// rule 1
+	r1 := ruleapi.NewRule("R1")
+	r1.AddCondition("C1", []string{"t1"}, checkC4, nil)
+	r1.SetAction(actionA4)
+	r1.SetPriority(1)
+	r1.SetContext(actionMap)
+	rs.AddRule(r1)
+
+	rs.Start(nil)
+	for n := 0; n < b.N; n++ {
+		t1, _ := model.NewTupleWithKeyValues("t1", "Tom"+randomString(randomBytes(16)))
+		t1.SetString(nil, "p3", "test")
+		err := rs.Assert(nil, t1)
+		if err != nil {
+			fmt.Println("Tom")
+			b.Error(err)
+			b.Fail()
+		}
+	}
+	rs.Unregister()
+}
+
+const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/"
+
+func randomBytes(n int) []byte {
+	bytes := make([]byte, n)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	return bytes
+}
+
+func randomString(bytes []byte) string {
+	for i, b := range bytes {
+		bytes[i] = letters[b%64]
+	}
+
+	return string(bytes)
 }
